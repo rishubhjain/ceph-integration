@@ -24,30 +24,6 @@ class ValidUpdateParameters(objects.BaseAtom):
             )
         )
 
-        if 'Pool.poolname' in self.parameters and \
-            ('Pool.pg_num' in self.parameters or
-             'Pool.size' in self.parameters or
-             'Pool.pg_num' in self.parameters or
-             'Pool.min_size' in self.parameters or
-             'Pool.quota_enabled' in self.parameters):
-            Event(
-                Message(
-                    priority="info",
-                    publisher=NS.publisher_id,
-                    payload={
-                        "message": "Invalid combination of pool update parameters. "
-                        "Pool name shouldnt be updated with other parameters."
-                    },
-                    job_id=self.parameters['job_id'],
-                    flow_id=self.parameters['flow_id'],
-                    cluster_id=NS.tendrl_context.integration_id,
-                )
-            )
-            raise AtomExecutionFailedError(
-                "Invalid combination of pool update parameters. "
-                "Pool name shoulnt be update with other parameters."
-            )
-
         if 'Pool.pg_num' in self.parameters:
             fetched_pool = Pool(
                 pool_id=self.parameters['Pool.pool_id']
@@ -55,7 +31,7 @@ class ValidUpdateParameters(objects.BaseAtom):
             if self.parameters['Pool.pg_num'] <= int(fetched_pool.pg_num):
                 Event(
                     Message(
-                        priority="info",
+                        priority="error",
                         publisher=NS.publisher_id,
                         payload={
                             "message": "New pg-num cannot be less than "
