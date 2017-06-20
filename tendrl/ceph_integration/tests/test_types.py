@@ -1,5 +1,8 @@
 from mock import MagicMock
 import pytest
+import mock
+import maps
+import __builtin__
 from tendrl.ceph_integration.tests.util import load_fixture
 from tendrl.ceph_integration.types import MonStatus
 from tendrl.ceph_integration.types import OsdMap
@@ -86,12 +89,24 @@ class TestCrushNodes(object):
         self.osd_map_data.__getitem__.side_effect = lambda x: \
             self.data[x] if x in self.data else self.osd_map_data
 
+    @mock.patch('tendrl.commons.event.Event.__init__',
+                mock.Mock(return_value=None))
+    @mock.patch('tendrl.commons.message.Message.__init__',
+                mock.Mock(return_value=None))
     def test_parent_map_none(self):
+        setattr(__builtin__, "NS", maps.NamedDict())
+        NS.publisher_id = "ceph_integration"
         self.data = {'tree': {'nodes': []}}
         osd_map = OsdMap(None, self.osd_map_data)
         assert {} == osd_map.parent_bucket_by_node_id
 
+    @mock.patch('tendrl.commons.event.Event.__init__',
+                mock.Mock(return_value=None))
+    @mock.patch('tendrl.commons.message.Message.__init__',
+                mock.Mock(return_value=None))
     def test_parent_map_one(self):
+        setattr(__builtin__, "NS", maps.NamedDict())
+        NS.publisher_id = "ceph_integration"
         self.data = {'tree': {'nodes': [
             {"children": [],
              "type": "rack",
@@ -117,8 +132,13 @@ class TestCrushNodes(object):
                       'id': -1
                       }]
             })
-
+    @mock.patch('tendrl.commons.event.Event.__init__',
+                mock.Mock(return_value=None))
+    @mock.patch('tendrl.commons.message.Message.__init__',
+                mock.Mock(return_value=None))
     def test_parent_map_some(self):
+        setattr(__builtin__, "NS", maps.NamedDict())
+        NS.publisher_id = "ceph_integration"
         self.data = {'tree': {'nodes': [
             {"children": [-4, -3, -2],
              "type": "root",
@@ -150,8 +170,13 @@ class TestCrushNodes(object):
                       'id': -1
                       }]
             })
-
+    @mock.patch('tendrl.commons.event.Event.__init__',
+                mock.Mock(return_value=None))
+    @mock.patch('tendrl.commons.message.Message.__init__',
+                mock.Mock(return_value=None))
     def test_parent_map_many(self):
+        setattr(__builtin__, "NS", maps.NamedDict())
+        NS.publisher_id = "ceph_integration"
         self.data = {'tree': {'nodes': [
             {
                 "children": [],
@@ -273,8 +298,13 @@ class TestCrushNodes(object):
                       'id': -1
                       }]
             })
-
+    @mock.patch('tendrl.commons.event.Event.__init__',
+                mock.Mock(return_value=None))
+    @mock.patch('tendrl.commons.message.Message.__init__',
+                mock.Mock(return_value=None))
     def test_parent_map_multiple_roots(self):
+        setattr(__builtin__, "NS", maps.NamedDict())
+        NS.publisher_id = "ceph_integration"
         self.data = {"tree": {"nodes": [
             {
                 "children": [
@@ -610,10 +640,15 @@ class TestCrushNodes(object):
         with pytest.raises(Exception):
             osd_map.get_tree_node(10)
 
-
+@mock.patch('tendrl.commons.event.Event.__init__',
+            mock.Mock(return_value=None))
+@mock.patch('tendrl.commons.message.Message.__init__',
+            mock.Mock(return_value=None))
 class TestCrushType(object):
 
     def test_shows_non_default_types(self):
+        setattr(__builtin__, "NS", maps.NamedDict())
+        NS.publisher_id = "ceph_integration"
         osd_map_data = MagicMock()
         data = {'crush': {'types': [{'type_id': 100, 'name': 'custom_type'}],
                           'buckets': []}}
