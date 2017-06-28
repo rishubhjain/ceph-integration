@@ -82,6 +82,8 @@ class CephIntegrationSdsSyncStateThread(sds_sync.SdsSyncThread):
         NS.tendrl_context.save()
 
     def _run(self):
+        try:
+            NS._int.client.read(
         Event(
             Message(
                 priority="info",
@@ -126,10 +128,21 @@ class CephIntegrationSdsSyncStateThread(sds_sync.SdsSyncThread):
             gevent.sleep(
                 int(NS.config.data.get("sync_interval", 10))
             )
+            try:
+                NS._int.wclient.write("clusters/%s/sync_status" % NS.tendrl_context.integration_id,
+                                      "in_progress", prevExist=False)
+            except (etcd.EtcdAlreadyExist, etcd.EtcdCompareFailed) as ex:
+                pass
+                
             cluster_data = ceph.heartbeat(NS.tendrl_context.cluster_id)
 
             self.on_heartbeat(cluster_data)
-
+             
+            _cluster = NS.tendrl.objects.Cluster(integration_id=NS.tendrl_context.integration_id)
+            if _cluster.exists():
+                _cluster.sync_status = "done"
+                _cluster.last_sync = str(now())
+                _cluster.save().
         Event(
             Message(
                 priority="info",
