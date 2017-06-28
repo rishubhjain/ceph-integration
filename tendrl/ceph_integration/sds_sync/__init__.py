@@ -45,6 +45,7 @@ from tendrl.commons.message import ExceptionMessage
 from tendrl.commons.message import Message
 from tendrl.commons import sds_sync
 from tendrl.commons.utils import cmd_utils
+from tendrl.commons.utils import etcd_utils
 from tendrl.commons.utils.time_utils import now
 
 
@@ -167,6 +168,9 @@ class CephIntegrationSdsSyncStateThread(sds_sync.SdsSyncThread):
             if data:
                 self.on_sync_object(data)
 
+        # Sync the cluster networl details (if not already)
+        self._sync_cluster_network_details()
+
         # Sync the utilization details for the cluster
         self._sync_utilization()
 
@@ -178,6 +182,33 @@ class CephIntegrationSdsSyncStateThread(sds_sync.SdsSyncThread):
 
         # Sync the OSD utilization details
         self._sync_osd_utilization()
+
+    def _sync_cluster_network_details(self):
+        try:
+            etcd_utils.read(
+                "clusters/%s/cluster_network" % NS.tendrl_context.integration_id
+            )
+        except etcd.EtcdKeyNotFound:
+            try:
+                cluster_config = NS.ceph.objects.SyncObject(
+                    sync_type='config'
+                ).load().data
+                cluster = NS.tendrl.objects.Cluster(
+                    integration_id=NS.tendrl_context.integration_id
+                ).load()
+                cluster.public_network = cluster_config['public_network']
+                cluster.cluster_network = cluster_config['cluster_network']
+                cluster.save()
+            except etcd.EtcdKeyNotFound as ex:
+                Event(
+                    Message(
+                        "error",
+                        publisher=NS.publisher_id,
+                        {'message': "Failed to sync cluster network details"}
+                    )
+                )
+                raise ex
+
 
     def _sync_osd_utilization(self):
         from ceph_argparse import json_command
