@@ -679,7 +679,7 @@ def get_heartbeats():
 
     if not sock_files:
         # If Admin Sockets are not found 
-        raise AdminSocketNotFoundError
+        raise AdminSocketNotFoundError("Admin sockets not found")
 
     # For each admin socket, try to interrogate the service
     for filename in glob("/var/run/ceph/*.asok"):
