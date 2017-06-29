@@ -664,11 +664,7 @@ def get_heartbeats():
 
     """
 
-    try:
-        import rados
-    except ImportError:
-        # Ceph isn't installed, report no services or clusters
-        return None, {}
+    import rados
 
     # Map of FSID to path string string
     mon_sockets = {}
