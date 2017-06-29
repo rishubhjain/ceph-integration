@@ -1,6 +1,6 @@
 ===============================
 ceph-integration
-================
+===============================
 
 Tendrl integration for Ceph Storage
 
@@ -20,13 +20,13 @@ Builds
 ------
 
 .. image:: https://travis-ci.org/Tendrl/ceph_integration.svg?branch=master
-    :target: https://travis-ci.org/Tendrl/ceph_integration
+  :target: https://travis-ci.org/Tendrl/ceph-integration
 
 Code Coverage
 -------------
 
 .. image:: https://coveralls.io/repos/github/Tendrl/ceph_integration/badge.svg?branch=master
-    :target: https://coveralls.io/github/Tendrl/ceph_integration?branch=master
+  :target: https://coveralls.io/github/Tendrl/ceph_integration?branch=master
 
 Developer/Install documentation
 -----------------------
