@@ -52,7 +52,7 @@ class AdminSocketError(MonitoringError):
 
 
 class AdminSocketNotFoundError(MonitoringError):
-    """Scokets not found in /var/run/ceph.
+    """Sockets not found in /var/run/ceph.
 
     """
     pass
