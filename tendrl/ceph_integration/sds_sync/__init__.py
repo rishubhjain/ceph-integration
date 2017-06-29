@@ -82,8 +82,6 @@ class CephIntegrationSdsSyncStateThread(sds_sync.SdsSyncThread):
         NS.tendrl_context.save()
 
     def _run(self):
-        try:
-            NS._int.client.read(
         Event(
             Message(
                 priority="info",
@@ -142,7 +140,7 @@ class CephIntegrationSdsSyncStateThread(sds_sync.SdsSyncThread):
             if _cluster.exists():
                 _cluster.sync_status = "done"
                 _cluster.last_sync = str(now())
-                _cluster.save().
+                _cluster.save()
         Event(
             Message(
                 priority="info",
@@ -215,9 +213,9 @@ class CephIntegrationSdsSyncStateThread(sds_sync.SdsSyncThread):
             except etcd.EtcdKeyNotFound as ex:
                 Event(
                     Message(
-                        "error",
+                        priority="error",
                         publisher=NS.publisher_id,
-                        {'message': "Failed to sync cluster network details"}
+                        payload={'message': "Failed to sync cluster network details"}
                     )
                 )
                 raise ex
