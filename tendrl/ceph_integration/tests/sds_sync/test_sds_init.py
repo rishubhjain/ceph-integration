@@ -2,6 +2,8 @@ from tendrl.ceph_integration import sds_sync
 from tendrl.ceph_integration import ceph
 from tendrl.ceph_integration.tests.fixtures.client import Client
 from tendrl.ceph_integration.tests.fixtures import cluster
+from tendrl.ceph_integration.tests.fixtures import utilization
+from tendrl.ceph_integration.tests.fixtures import syncobject
 from tendrl.ceph_integration.ceph import AdminSocketNotFoundError
 import importlib
 import mock
@@ -25,10 +27,40 @@ sync_obj = None
 
 '''Dummy functions'''
 
+class ceph_argparse:
+
+    def __init__(self):
+        pass
+
+    @staticmethod
+    def json_command(*args,**kwargs):
+        out = """out
+                 RAW USED
+                 GLOBAL
+                 SIZE AVAIL RAW_USED %RAW_USED
+                 10 10 10 10 10"""
+        return 0,out,""
+    
+
 class rados:
     Error = ""
     def __init__(self):
         pass
+
+    @staticmethod
+    def Rados(*args,**kwargs):
+        return rados()
+
+    def connect(self):
+        pass
+
+    def shutdown(self):
+        pass
+
+    @staticmethod
+    def Error(*args):
+        raise Exception
+
 
 def get_heartbeats(*args,**kwargs):
     return 1.1,[{
@@ -47,7 +79,7 @@ def heartbeat(*args,**kwargs):
     sync_obj._complete.set()
     return None
 
-def read(*args):
+def read(*args,**kwargs):
     raise etcd.EtcdKeyNotFound
 
 
@@ -57,8 +89,8 @@ def write(*args):
 
 def run(*args):
     if args[0]:
-        out = out = """out
-                       error = test"""
+        out = """out
+                 error = test"""
         return out,"err",0
     else:
         return "out","err",1
@@ -145,6 +177,8 @@ def test_run():
             NS.config = maps.NamedDict(data = maps.NamedDict(sync_interval = 10))
             NS.tendrl = maps.NamedDict(objects = cluster)
             sync_obj._run()
+            with patch.object(cluster.Cluster,'exists',return_value = False):
+                sync_obj._run()
             with patch.object(Client,'write',write):
                 sync_obj._run()
             with patch.object(Client,'read',read):
@@ -164,6 +198,10 @@ def test_run():
 def test_on_heartbeat():
     setattr(__builtin__, "NS", maps.NamedDict())
     NS.publisher_id = "ceph_integration"
+    setattr(NS, "_int", maps.NamedDict())
+    obj = importlib.import_module("tendrl.ceph_integration.tests.fixtures.client")
+    NS._int.client = obj.Client()
+    NS._int.wclient = obj.Client()
     NS.tendrl_context = importlib.import_module("tendrl.ceph_integration.tests.fixtures.tendrlcontext").TendrlContext()
     NS.node_context = importlib.import_module("tendrl.ceph_integration.tests.fixtures.nodecontext").NodeContext()
     with mock.patch('tendrl.ceph_integration.ceph.heartbeat',mock.Mock(return_value = maps.NamedDict(fsid = "test_fsid",name='ceph'))):
@@ -173,5 +211,10 @@ def test_on_heartbeat():
         assert ret == None
         cluster_data = {'versions':maps.NamedDict(mds_map = 1.1,osd_map = 1.1,mon_map = 1.1,mon_status = 1.1,pg_summary = 1.1,health = 1.1,config = 1.1)}
         with mock.patch('tendrl.ceph_integration.sds_sync.sync_objects.SyncObjects.on_version',mock.Mock(return_value=None)):
-        #sync_obj.on_heartbeat(cluster_data)
-            pass
+            with mock.patch.dict('sys.modules', {'rados': rados}):
+                with mock.patch.dict('sys.modules', {'ceph_argparse': ceph_argparse}):
+                    with patch.object(Client,'read',read):
+                        NS.ceph = maps.NamedDict(objects = utilization)
+                        NS.tendrl = maps.NamedDict(objects = cluster)
+                        with pytest.raises(OSError):
+                            sync_obj.on_heartbeat(cluster_data)
