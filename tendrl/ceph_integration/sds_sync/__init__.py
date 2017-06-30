@@ -261,8 +261,7 @@ class CephIntegrationSdsSyncStateThread(sds_sync.SdsSyncThread):
         # Loop through the pools and update the utilization details
         try:
             pools = NS._int.client.read(
-                "clusters/%s/Pools" % NS.tendrl_context.integration_id,
-            )
+                "clusters/%s/Pools" % NS.tendrl_context.integration_id)
         except etcd.EtcdKeyNotFound:
             # No pools so no need to continue with pool utilization sync
             return
