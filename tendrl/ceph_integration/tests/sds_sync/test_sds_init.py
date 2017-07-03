@@ -109,6 +109,8 @@ def load_sync(*args):
     raise etcd.EtcdKeyNotFound
     
 
+def rados_command(*args,**kwargs):
+    return {'nodes' : [{'kb' : 1, 'kb_used' : 1 , 'utilization' : 1,'id' : 1}]}
 
 '''Unit Test Cases'''
 
@@ -252,3 +254,25 @@ def test_sync_cluster_network_details():
             with patch.object(utilization.SyncObject,'load',load_sync):
                 with pytest.raises(etcd.EtcdKeyNotFound):
                     sync_obj._sync_cluster_network_details()
+
+
+@mock.patch('tendrl.commons.event.Event.__init__',
+            mock.Mock(return_value=None))
+@mock.patch('tendrl.commons.message.Message.__init__',
+            mock.Mock(return_value=None))
+def test_sync_osd_utilization():
+    setattr(__builtin__, "NS", maps.NamedDict())
+    NS.publisher_id = "ceph_integration"
+    setattr(NS, "_int", maps.NamedDict())
+    obj = importlib.import_module("tendrl.ceph_integration.tests.fixtures.client")
+    NS._int.client = obj.Client()
+    NS._int.wclient = obj.Client()
+    NS.tendrl_context = importlib.import_module("tendrl.ceph_integration.tests.fixtures.tendrlcontext").TendrlContext()
+    NS.node_context = importlib.import_module("tendrl.ceph_integration.tests.fixtures.nodecontext").NodeContext()
+    with mock.patch('tendrl.ceph_integration.ceph.heartbeat',mock.Mock(return_value = maps.NamedDict(fsid = "test_fsid",name='ceph'))):
+        sync_obj = sds_sync.CephIntegrationSdsSyncStateThread()
+        with mock.patch.dict('sys.modules', {'rados': rados}):
+            with mock.patch.dict('sys.modules', {'ceph_argparse': ceph_argparse}):
+                with patch.object(ceph,'rados_command',rados_command):
+                    NS.ceph = maps.NamedDict(objects = utilization)
+                    sync_obj._sync_osd_utilization()

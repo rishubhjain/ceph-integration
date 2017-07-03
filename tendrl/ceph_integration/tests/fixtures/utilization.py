@@ -18,3 +18,14 @@ class SyncObject():
     def load(self):
         return self
 
+class Osd():
+    def __init__(self,*args,**kwargs):
+         self.total = 0
+         self.used = 0
+         self.used_pcnt = 1
+
+    def load(self):
+        return self
+
+    def save(self):
+        pass
