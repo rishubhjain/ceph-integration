@@ -1,6 +1,7 @@
 from tendrl.ceph_integration import sds_sync
 from tendrl.ceph_integration import ceph
 from tendrl.ceph_integration.tests.fixtures.client import Client
+from tendrl.ceph_integration.manager.crud import Crud
 from tendrl.ceph_integration.tests.fixtures import cluster
 from tendrl.ceph_integration.tests.fixtures import utilization
 from tendrl.ceph_integration.tests.fixtures import syncobject
@@ -98,6 +99,10 @@ def run(*args):
 
 def run_None(*args):
     return None,"err",0
+
+def ceph_command(*args):
+    return maps.NamedDict(err = "test error",out = "")
+    
 
 
 '''Unit Test Cases'''
@@ -216,5 +221,7 @@ def test_on_heartbeat():
                     with patch.object(Client,'read',read):
                         NS.ceph = maps.NamedDict(objects = utilization)
                         NS.tendrl = maps.NamedDict(objects = cluster)
-                        with pytest.raises(OSError):
-                            sync_obj.on_heartbeat(cluster_data)
+                        with patch.object(ceph,'ceph_command',ceph_command):
+                            with patch.object(Crud,'create',return_value = None):
+                                with patch.object(ceph,'rados_command',return_value = None):
+                                    sync_obj.on_heartbeat(cluster_data)
