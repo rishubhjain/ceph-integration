@@ -29,7 +29,8 @@ class CheckRbdAvailable(objects.BaseAtom):
                             priority="error",
                             publisher=NS.publisher_id,
                             payload={
-                                "message": "Rbd %s not reflected in tendrl yet. Timing out" %
+                                "message": "Rbd %s not reflected in "\
+                                "tendrl yet. Timing out" %
                                 self.parameters['Rbd.name']
                             },
                             job_id=self.parameters['job_id'],

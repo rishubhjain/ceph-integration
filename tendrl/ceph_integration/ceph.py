@@ -670,13 +670,14 @@ def get_heartbeats():
     mon_sockets = {}
     # FSID string to cluster name string
     fsid_names = {}
-    
+
     sock_glob = "/var/run/ceph/*.asok"
     sock_files = glob(sock_glob)
 
     if not sock_files:
-        # If Admin Sockets are not found 
-        raise AdminSocketNotFoundError("ceph admin sockets not found at %s" % sock_glob)
+        # If Admin Sockets are not found
+        raise AdminSocketNotFoundError("ceph admin sockets not found at"\
+                                       " %s" % sock_glob)
 
     # For each admin socket, try to interrogate the service
     for filename in sock_files:
@@ -881,7 +882,8 @@ def heartbeat(fsid=None):
         sys.stdout.write("Error getting heartbeat for ceph cluster fsid %s"
                          % fsid)
         sys.stdout.write(str(ex))
-        if type(ex) in [rados.Error, MonitoringError, AdminSocketError, AdminSocketNotFoundError]:
+        if type(ex) in [rados.Error, MonitoringError, AdminSocketError,
+                        AdminSocketNotFoundError]:
             raise ex
 
 

@@ -28,7 +28,8 @@ class CheckECProfileAvailable(objects.BaseAtom):
                             priority="error",
                             publisher=NS.publisher_id,
                             payload={
-                                "message": "ECProfile %s not reflected in tendrl yet. Timing out" %
+                                "message": "ECProfile %s not reflected"\
+                                " in tendrl yet. Timing out" %
                                 self.parameters['ECProfile.name']
                             },
                             job_id=self.parameters['job_id'],
