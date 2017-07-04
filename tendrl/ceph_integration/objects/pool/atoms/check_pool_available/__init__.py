@@ -22,16 +22,17 @@ class CheckPoolAvailable(objects.BaseAtom):
                 )
             except etcd.EtcdKeyNotFound:
                 pass
-            
+
             if pools:
                 for entry in pools.leaves:
                     try:
-                        pool = Pool(pool_id=entry.key.split("Pools/")[-1]).load()
+                        key = entry.key
+                        pool = Pool(pool_id=key.split("Pools/")[-1]).load()
                         if pool.pool_name == self.parameters['Pool.poolname']:
                             return True
                     except etcd.EtcdKeyNotFound:
                         continue
-            
+
             retry_count += 1
             gevent.sleep(1)
             if retry_count == 600:
@@ -40,13 +41,14 @@ class CheckPoolAvailable(objects.BaseAtom):
                         priority="error",
                         publisher=NS.publisher_id,
                         payload={
-                            "message": "Pool %s not reflected in tendrl yet. Timing out" %
+                            "message": "Pool %s not reflected in"
+                            " tendrl yet. Timing out" %
                             self.parameters['Pool.pool_name']
                         },
                         job_id=self.parameters['job_id'],
                         flow_id=self.parameters['flow_id'],
                         cluster_id=NS.tendrl_context.integration_id,
-                   )
+                    )
                 )
                 raise AtomExecutionFailedError(
                     "Pool %s not reflected in tendrl yet. Timing out" %

@@ -127,16 +127,19 @@ class CephIntegrationSdsSyncStateThread(sds_sync.SdsSyncThread):
                 int(NS.config.data.get("sync_interval", 10))
             )
             try:
-                NS._int.wclient.write("clusters/%s/sync_status" % NS.tendrl_context.integration_id,
+                NS._int.wclient.write("clusters/%s/"
+                                      "sync_status" %
+                                      NS.tendrl_context.integration_id,
                                       "in_progress", prevExist=False)
-            except (etcd.EtcdAlreadyExist, etcd.EtcdCompareFailed) as ex:
+            except (etcd.EtcdAlreadyExist, etcd.EtcdCompareFailed):
                 pass
-                
+
             cluster_data = ceph.heartbeat(NS.tendrl_context.cluster_id)
 
             self.on_heartbeat(cluster_data)
-             
-            _cluster = NS.tendrl.objects.Cluster(integration_id=NS.tendrl_context.integration_id)
+
+            _cluster = NS.tendrl.objects.Cluster(
+                integration_id=NS.tendrl_context.integration_id)
             if _cluster.exists():
                 _cluster.sync_status = "done"
                 _cluster.last_sync = str(now())
@@ -197,7 +200,8 @@ class CephIntegrationSdsSyncStateThread(sds_sync.SdsSyncThread):
     def _sync_cluster_network_details(self):
         try:
             etcd_utils.read(
-                "clusters/%s/cluster_network" % NS.tendrl_context.integration_id
+                "clusters/%s/cluster_network" %
+                NS.tendrl_context.integration_id
             )
         except etcd.EtcdKeyNotFound:
             try:
@@ -215,14 +219,13 @@ class CephIntegrationSdsSyncStateThread(sds_sync.SdsSyncThread):
                     Message(
                         priority="error",
                         publisher=NS.publisher_id,
-                        payload={'message': "Failed to sync cluster network details"}
+                        payload={'message':
+                                 "Failed to sync cluster network details"}
                     )
                 )
                 raise ex
 
-
     def _sync_osd_utilization(self):
-        from ceph_argparse import json_command
         import rados
         _conf_file = os.path.join(
             "/etc/ceph",

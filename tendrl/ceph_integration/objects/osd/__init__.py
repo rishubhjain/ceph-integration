@@ -3,12 +3,12 @@ from tendrl.integrations.ceph.objects import osd
 
 class Osd(osd.Osd):
     def __init__(self, id=None,
-                 uuid=None, hostname=None, public_addr=None, cluster_addr=None,
-                 device_path=None, heartbeat_front_addr=None, heartbeat_back_addr=None,
-                 down_at=None, up_from=None, lost_at=None,
-                 osd_up=None, osd_in=None, up_thru=None,
-                 weight=None, primary_affinity=None,
-                 state=None, last_clean_begin=None,
+                 uuid=None, hostname=None, public_addr=None,
+                 cluster_addr=None, device_path=None,
+                 heartbeat_front_addr=None, heartbeat_back_addr=None,
+                 down_at=None, up_from=None, lost_at=None, osd_up=None,
+                 osd_in=None, up_thru=None, weight=None,
+                 primary_affinity=None, state=None, last_clean_begin=None,
                  last_clean_end=None, total=None, used=None, used_pcnt=None,
                  *args, **kwargs):
         super(Osd, self).__init__(

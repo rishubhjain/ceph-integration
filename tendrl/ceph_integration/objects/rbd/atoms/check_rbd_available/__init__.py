@@ -29,13 +29,14 @@ class CheckRbdAvailable(objects.BaseAtom):
                             priority="error",
                             publisher=NS.publisher_id,
                             payload={
-                                "message": "Rbd %s not reflected in tendrl yet. Timing out" %
+                                "message": "Rbd %s not reflected in "
+                                "tendrl yet. Timing out" %
                                 self.parameters['Rbd.name']
                             },
                             job_id=self.parameters['job_id'],
                             flow_id=self.parameters['flow_id'],
                             cluster_id=NS.tendrl_context.integration_id,
-                       )
+                        )
                     )
                     raise AtomExecutionFailedError(
                         "Rbd %s not reflected in tendrl yet. Timing out" %

@@ -81,7 +81,7 @@ def main():
     NS.tendrl_context.save()
     NS.ceph.definitions.save()
     NS.ceph.config.save()
-    
+
     if NS.config.data.get("with_internal_profiling", False):
         from tendrl.commons import profiler
         profiler.start()
