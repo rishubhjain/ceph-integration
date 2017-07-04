@@ -58,3 +58,10 @@ class Rbd:
 
     def save(self):
         pass
+
+class ECProfile:
+    def __init__(self,*args,**kwargs):
+        pass
+
+    def save(self):
+        pass

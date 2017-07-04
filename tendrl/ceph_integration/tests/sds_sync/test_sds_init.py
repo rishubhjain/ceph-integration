@@ -102,6 +102,9 @@ def run_None(*args):
 
 
 def ceph_command(*args):
+    if args[0] == "no_error":
+        out = """out=test\nerror=test\nk=1\nm=1"""
+        return maps.NamedDict(err = "",out = out)
     return maps.NamedDict(err = "test error",out = "")
 
 
@@ -117,7 +120,8 @@ def rados_command(*args,**kwargs):
 def read_pools(*args,**kwargs):
     if args[1] == "clusters/test_id/Pools" or \
         args[1] == "clusters/test_id/Pools/test/pool_name" or \
-        args[1] == "clusters/test_id/Pools/test/Rbds":
+        args[1] == "clusters/test_id/Pools/test/Rbds" or \
+        args[1] == "clusters/test_id/ECProfiles":
         return utilization.Pool()
 
 def read_raise_error(*args,**kwargs):
@@ -129,6 +133,24 @@ def read_raise_error(*args,**kwargs):
 
 def get_rbds(*args,**kwars):
     return {'key':{'size':1,'flags':True,'provisioned':'10','used':'1'}}
+
+@mock.patch('tendrl.commons.event.Event.__init__',
+            mock.Mock(return_value=None))
+@mock.patch('tendrl.commons.message.Message.__init__',
+            mock.Mock(return_value=None))
+def init():
+    setattr(__builtin__, "NS", maps.NamedDict())
+    NS.publisher_id = "ceph_integration"
+    setattr(NS, "_int", maps.NamedDict())
+    obj = importlib.import_module("tendrl.ceph_integration.tests.fixtures.client")
+    NS._int.client = obj.Client()
+    NS._int.wclient = obj.Client()
+    NS.tendrl_context = importlib.import_module("tendrl.ceph_integration.tests.fixtures.tendrlcontext").TendrlContext()
+    NS.node_context = importlib.import_module("tendrl.ceph_integration.tests.fixtures.nodecontext").NodeContext()
+    with mock.patch('tendrl.ceph_integration.ceph.heartbeat',
+                    mock.Mock(return_value = maps.NamedDict
+                             (fsid = "test_fsid",name='ceph'))):
+        return sds_sync.CephIntegrationSdsSyncStateThread()
 
 
 '''Unit Test Cases'''
@@ -343,7 +365,9 @@ def test_sync_rbds():
     NS._int.wclient = obj.Client()
     NS.tendrl_context = importlib.import_module("tendrl.ceph_integration.tests.fixtures.tendrlcontext").TendrlContext()
     NS.node_context = importlib.import_module("tendrl.ceph_integration.tests.fixtures.nodecontext").NodeContext()
-    with mock.patch('tendrl.ceph_integration.ceph.heartbeat',mock.Mock(return_value = maps.NamedDict(fsid = "test_fsid",name='ceph'))):
+    with mock.patch('tendrl.ceph_integration.ceph.heartbeat',
+                    mock.Mock(return_value = maps.NamedDict
+                             (fsid = "test_fsid",name='ceph'))):
         sync_obj = sds_sync.CephIntegrationSdsSyncStateThread()
         with mock.patch.dict('sys.modules', {'ceph_argparse': ceph_argparse}):
             with mock.patch.dict('sys.modules', {'rados': rados}):
@@ -359,3 +383,18 @@ def test_sync_rbds():
                         sync_obj._sync_rbds()
                     with patch.object(CephIntegrationSdsSyncStateThread,'_get_rbds',get_rbds):
                         sync_obj._sync_rbds()
+
+
+@mock.patch('tendrl.commons.event.Event.__init__',
+            mock.Mock(return_value=None))
+@mock.patch('tendrl.commons.message.Message.__init__',
+            mock.Mock(return_value=None))
+def test_sync_ec_profiles():
+    sync_obj = init()
+    with patch.object(ceph,'ceph_command') as mock_ceph_command:
+        mock_ceph_command.return_value = ceph_command("no_error")
+        with patch.object(Crud,'create',return_value = None):
+            with patch.object(Client,'read',read_pools):
+                NS._int.client.delete = utilization.Pool
+                NS.ceph = maps.NamedDict(objects = utilization)
+                sync_obj._sync_ec_profiles()
