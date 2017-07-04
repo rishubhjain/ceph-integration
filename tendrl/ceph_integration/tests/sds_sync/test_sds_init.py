@@ -4,6 +4,7 @@ from tendrl.ceph_integration.tests.fixtures.client import Client
 from tendrl.ceph_integration.manager.crud import Crud
 from tendrl.ceph_integration.tests.fixtures import cluster
 from tendrl.ceph_integration.tests.fixtures import utilization
+from tendrl.ceph_integration.tests.fixtures import globaldetails
 from tendrl.ceph_integration.tests.fixtures import syncobject
 from tendrl.ceph_integration.ceph import AdminSocketNotFoundError
 from tendrl.ceph_integration.sds_sync import CephIntegrationSdsSyncStateThread
@@ -128,7 +129,8 @@ def read_raise_error(*args,**kwargs):
     if args[1] == "clusters/test_id/Pools" or \
         args[1] == "clusters/test_id/Pools/test/pool_name":
         return utilization.Pool()
-    elif args[1] == "clusters/test_id/Pools/test/Rbds":
+    elif args[1] == "clusters/test_id/Pools/test/Rbds" or \
+        args[1] == "clusters/test_id/ECProfiles":
         raise etcd.EtcdKeyNotFound 
 
 def get_rbds(*args,**kwars):
@@ -398,3 +400,41 @@ def test_sync_ec_profiles():
                 NS._int.client.delete = utilization.Pool
                 NS.ceph = maps.NamedDict(objects = utilization)
                 sync_obj._sync_ec_profiles()
+            with patch.object(Client,'read',read_raise_error):
+                NS._int.client.delete = utilization.Pool
+                NS.ceph = maps.NamedDict(objects = utilization)
+                sync_obj._sync_ec_profiles()
+
+
+@mock.patch('tendrl.commons.event.Event.__init__',
+            mock.Mock(return_value=None))
+@mock.patch('tendrl.commons.message.Message.__init__',
+            mock.Mock(return_value=None))
+def test_emit_event():
+    sync_obj = init()
+    NS.node_context = maps.NamedDict(node_id = None)
+    ret = sync_obj._emit_event(1,1,1,"Test_msg")
+    assert ret is None
+    NS.node_context = maps.NamedDict(node_id = "cpeh_integration")
+    NS.publisher_id = "ceph"
+    NS.tendrl_context.sds_name = "test_sds"
+    sync_obj._emit_event(1,1,1,"Test_msg")
+    sync_obj._emit_event(1,1,1,"Test_msg","test_plugin_instance")
+
+
+@mock.patch('tendrl.commons.event.Event.__init__',
+            mock.Mock(return_value=None))
+@mock.patch('tendrl.commons.message.Message.__init__',
+            mock.Mock(return_value=None))
+def test_on_health():
+    sync_obj = init()
+    NS.ceph = maps.NamedDict(objects = globaldetails)
+    NS.node_context = maps.NamedDict(node_id = "cpeh_integration")
+    NS.publisher_id = "ceph"
+    NS.tendrl_context.sds_name = "test_sds"
+    data = {'overall_status': 'HEALTH_OK'}
+    sync_obj._on_health(data)
+    data = {'overall_status': 'HEALTH_WARN'}
+    sync_obj._on_health(data)
+    data = {'overall_status': 'HEALTH_ERR'}
+    sync_obj._on_health(data)
