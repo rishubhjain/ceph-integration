@@ -15,7 +15,6 @@ from mock import patch
 import gevent.event
 import etcd
 import glob
-import sys
 from tendrl.commons.utils.cmd_utils import Command
 from tendrl.ceph_integration.types import SYNC_OBJECT_TYPES
 
@@ -111,6 +110,11 @@ def load_sync(*args):
 
 def rados_command(*args,**kwargs):
     return {'nodes' : [{'kb' : 1, 'kb_used' : 1 , 'utilization' : 1,'id' : 1}]}
+
+
+def read_pools(*args):
+    if args[1] == "clusters/test_id/Pools":
+        return utilization.Pool()
 
 '''Unit Test Cases'''
 
@@ -276,3 +280,25 @@ def test_sync_osd_utilization():
                 with patch.object(ceph,'rados_command',rados_command):
                     NS.ceph = maps.NamedDict(objects = utilization)
                     sync_obj._sync_osd_utilization()
+
+
+@mock.patch('tendrl.commons.event.Event.__init__',
+            mock.Mock(return_value=None))
+@mock.patch('tendrl.commons.message.Message.__init__',
+            mock.Mock(return_value=None))
+def test_sync_utilization():
+    setattr(__builtin__, "NS", maps.NamedDict())
+    NS.publisher_id = "ceph_integration"
+    setattr(NS, "_int", maps.NamedDict())
+    obj = importlib.import_module("tendrl.ceph_integration.tests.fixtures.client")
+    NS._int.client = obj.Client()
+    NS._int.wclient = obj.Client()
+    NS.tendrl_context = importlib.import_module("tendrl.ceph_integration.tests.fixtures.tendrlcontext").TendrlContext()
+    NS.node_context = importlib.import_module("tendrl.ceph_integration.tests.fixtures.nodecontext").NodeContext()
+    with mock.patch('tendrl.ceph_integration.ceph.heartbeat',mock.Mock(return_value = maps.NamedDict(fsid = "test_fsid",name='ceph'))):
+        sync_obj = sds_sync.CephIntegrationSdsSyncStateThread()
+        with mock.patch.dict('sys.modules', {'ceph_argparse': ceph_argparse}):
+            with mock.patch.dict('sys.modules', {'rados': rados}):
+                NS.ceph = maps.NamedDict(objects = utilization)
+                with patch.object(Client,'read',read_pools):
+                    sync_obj._sync_utilization()

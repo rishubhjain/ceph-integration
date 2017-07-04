@@ -1,5 +1,6 @@
 import maps
 
+
 class Utilization():
 
     def __init__(self,*args,**kwargs):
@@ -11,12 +12,14 @@ class Utilization():
     def exists(self):
         return True
 
+
 class SyncObject():
     def __init__(self,*args,**kwargs):
          self.data = maps.NamedDict(public_network = "test",cluster_network = "test")
 
     def load(self):
         return self
+
 
 class Osd():
     def __init__(self,*args,**kwargs):
@@ -29,3 +32,18 @@ class Osd():
 
     def save(self):
         pass
+
+
+class Pool():
+    def __init__(self,*args,**kwargs):
+        self.leaves = [maps.NamedDict(key = "test/Pools/test")]
+        self.pool_name = "test_pool"
+        self.used = 100
+        self.percent_used = 1
+
+    def load(self):
+        return self
+
+    def save(self):
+        pass
+        
