@@ -15,10 +15,20 @@ class Utilization:
 
 class SyncObject:
     def __init__(self,*args,**kwargs):
-         self.data = maps.NamedDict(public_network = "test",cluster_network = "test",quorum = {'mon','test_mon'})
+         self.data = maps.NamedDict(public_network = "test",
+                                    cluster_network = "test",
+                                    quorum = {'mon','test_mon'},
+                                    osds = [{'osd':'test_osd','up':False,'in':False}],
+                                    pools = [{'pool':'test_pool'}])
 
     def load(self):
         return self
+
+    def exists(self):
+        return True
+
+    def save(self,*args,**kwargs):
+        pass
 
 
 class Osd:
@@ -36,7 +46,7 @@ class Osd:
 
 class Pool:
     def __init__(self,*args,**kwargs):
-        self.leaves = [maps.NamedDict(key = "test/Pools/test")]
+        self.leaves = [maps.NamedDict(key = "test/Pools/10")]
         self._children = [maps.NamedDict(key = "test/Pools/test")]
         self.value = "Pool Name"
         self.pool_name = "test_pool"
@@ -49,6 +59,7 @@ class Pool:
     def save(self):
         pass
 
+
 class Rbd:
     def __init__(self,*args,**kwargs):
         self.name = ""
@@ -59,9 +70,22 @@ class Rbd:
     def save(self):
         pass
 
+
 class ECProfile:
     def __init__(self,*args,**kwargs):
         pass
 
     def save(self):
         pass
+
+
+class GlobalDetails:
+
+    def __init__(self,*args,**kwargs):
+       self.status = "HEALTH_WARN"
+
+    def save(self):
+        pass
+
+    def load(self):
+        return self
