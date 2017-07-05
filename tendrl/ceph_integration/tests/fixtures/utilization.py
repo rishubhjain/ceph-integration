@@ -15,7 +15,7 @@ class Utilization:
 
 class SyncObject:
     def __init__(self,*args,**kwargs):
-         self.data = maps.NamedDict(public_network = "test",cluster_network = "test")
+         self.data = maps.NamedDict(public_network = "test",cluster_network = "test",quorum = {'mon','test_mon'})
 
     def load(self):
         return self

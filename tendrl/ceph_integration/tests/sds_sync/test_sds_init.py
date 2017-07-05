@@ -438,3 +438,25 @@ def test_on_health():
     sync_obj._on_health(data)
     data = {'overall_status': 'HEALTH_ERR'}
     sync_obj._on_health(data)
+
+
+
+@mock.patch('tendrl.commons.event.Event.__init__',
+            mock.Mock(return_value=None))
+@mock.patch('tendrl.commons.message.Message.__init__',
+            mock.Mock(return_value=None))
+def test_on_mon_status():
+    sync_obj = init()
+    NS.ceph = maps.NamedDict(objects = utilization)
+    NS.node_context = maps.NamedDict(node_id = "cpeh_integration")
+    NS.publisher_id = "ceph"
+    NS.tendrl_context.sds_name = "test_sds"
+    data = maps.NamedDict(
+        quorum = {'mon'},
+        mons_by_rank = maps.NamedDict(test_mon = {'name':'test_mon'}))
+    sync_obj._on_mon_status(data)
+    
+    data = maps.NamedDict(
+        quorum = {'test_mon','mon','new_mon'},
+        mons_by_rank = maps.NamedDict(new_mon = {'name':'test_mon'}))
+    sync_obj._on_mon_status(data)
