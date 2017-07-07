@@ -49,7 +49,7 @@ class Pool:
         self.leaves = [maps.NamedDict(key = "test/Pools/10")]
         self._children = [maps.NamedDict(key = "test/Pools/test")]
         self.value = "Pool Name"
-        self.pool_name = "test_pool"
+        self.pool_name = 'test_pool'
         self.used = 100
         self.percent_used = 1
 

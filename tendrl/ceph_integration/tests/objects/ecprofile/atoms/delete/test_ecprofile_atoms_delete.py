@@ -38,8 +38,8 @@ def test_run():
     NS.tendrl_context.integration_id = "ceph_integration"
     NS.publisher_id = "ceph_integration"
     ecprofile = importlib.import_module("tendrl.ceph_integration.tests.fixtures.ecprofile")
-    delt = importlib.import_module("tendrl.ceph_integration.tests.fixtures.delete").delete
-    NS._int = maps.NamedDict(wclient = maps.NamedDict(delete = delt))
+    clt = importlib.import_module("tendrl.ceph_integration.tests.fixtures.client").Client()
+    NS._int = maps.NamedDict(wclient = clt)
     NS.ceph = maps.NamedDict(objects = ecprofile)
     with patch.object(objects.BaseAtom, 'load_definition',return_value = None):
         ec_profile = Delete(parameters = {'ECProfile.name' : 'test_param','job_id':'test_job_id','flow_id':'test_flow_id','ECProfile.plugin' : 'test_plugin','ECProfile.k' : 'k','ECProfile.m' : 'm'})

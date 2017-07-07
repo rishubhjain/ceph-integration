@@ -14,3 +14,6 @@ class Client:
 
     def load(self):
         pass
+
+    def delete(self,*args,**kwargs):
+        pass
