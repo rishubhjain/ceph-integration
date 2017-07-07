@@ -41,7 +41,7 @@ class CheckPoolAvailable(objects.BaseAtom):
                         publisher=NS.publisher_id,
                         payload={
                             "message": "Pool %s not reflected in tendrl yet. Timing out" %
-                            self.parameters['Pool.pool_name']
+                            self.parameters['Pool.poolname']
                         },
                         job_id=self.parameters['job_id'],
                         flow_id=self.parameters['flow_id'],
@@ -50,5 +50,5 @@ class CheckPoolAvailable(objects.BaseAtom):
                 )
                 raise AtomExecutionFailedError(
                     "Pool %s not reflected in tendrl yet. Timing out" %
-                    self.parameters['Pool.pool_name']
+                    self.parameters['Pool.poolname']
                 )
